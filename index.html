@@ -1,0 +1,260 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<title>demo</title>
+		<link href="./js/Cesium/Widgets/widgets.css" rel="stylesheet">
+
+		<link rel="stylesheet" type="text/css" href="js/bootstrap-3.3.7-dist/css/bootstrap-theme.min.css" />
+		<link rel="stylesheet" type="text/css" href="js/bootstrap-3.3.7-dist/css/bootstrap.css" />
+		<link rel="stylesheet" type="text/css" href="js/bootstrap-3.3.7-dist/css/bootstrap-treeview.css" />
+		<link rel="stylesheet" type="text/css" href="js/bootstrap-3.3.7-dist/css/bootstrap-select.min.css" />
+
+		<link rel="stylesheet" type="text/css" href="css/flat-ui.css" />
+		<link rel="stylesheet" type="text/css" href="css/font-awesome.css" />
+
+		<link rel="stylesheet" type="text/css" href="photoSphere/css/normalize.css" />
+		<link rel="stylesheet" type="text/css" href="photoSphere/css/default.css" />
+		<link rel="stylesheet" type="text/css" href="css/pretty.css" />
+		<link rel="stylesheet" type="text/css" href="css/toolbar.css" />
+		<!--<link rel="stylesheet" type="text/css" href="css/bubble.css"/>-->
+		<link rel="stylesheet" type="text/css" href="css/index.css" />
+		<link rel="stylesheet" type="text/css" href="css/mystyle.css" />
+
+		<style>
+			.drawCur {
+				cursor: url(./images/cur/aero_pen.cur), auto;
+			}
+			
+			.measureCur {
+				cursor: url(./images/cur/measure.cur), auto;
+			}
+			
+			.queryattributesCur {
+				cursor: url(./images/cur/aero_helpsel.cur), auto;
+			}
+			
+			.photosphereCur {
+				cursor: url(./images/cur/aero_link.cur), auto;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="cesiumContainer"></div>
+		<div id='loadingbar' class="spinner">
+			<div class="spinner-container container1">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container2">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+			<div class="spinner-container container3">
+				<div class="circle1"></div>
+				<div class="circle2"></div>
+				<div class="circle3"></div>
+				<div class="circle4"></div>
+			</div>
+		</div>
+		<div id='toolbar' style='position: absolute;left: 5px;top: 5px;display: block;'>
+
+			<div class='btn-group'>
+				<a data-toggle='dropdown' id='layerMangerBtn' title='图层管理' class='btn btn-inverse'>
+					<span style='font-size : 24px;' class='smicon-layerlist'></span></a>
+				<div class="dropdown-menu" style="width: auto;height: auto;min-width: 400px; background-color: rgba(0,0,0,0);border: hidden;padding: 0 0;opacity: 0.8;">
+					<div class="treeContiner" id="treeContiner">
+						<div id="layerTree" class="treeview"></div>
+					</div>
+				</div>
+			</div>
+
+			<div class='btn-group' id='queryByCircle'>
+				<a data-toggle='dropdown' id='queryByCircleBtn' title='周边查询' class='btn btn-inverse'>
+					<span style='font-size : 24px;' class='queryCircle'></span></a>
+				<div class="dropdown-menu" style="position:fixed;top:150px;right: 0; left: auto;height: auto; max-width: 450px; background-color: rgba(0,0,0,0);border: hidden;padding: 0 0;">
+					<div class="panel panel-default" id="queryByCirclePanel" style="margin-bottom: 0">
+						<!-- Default panel contents -->
+						<div class="panel-heading">周边查询
+							<button type="button" class="close" aria-label="Close" onclick="closePanel('#queryByCircle')"><span aria-hidden="true">&times;</span></button>
+						</div>
+						<div class="panel-body">
+							<div class="input-group">
+								<!--<span class="input-group-addon" id="basic-addon1">输入查询半径-->
+								<!--</span>-->
+								<input id="circleR" type="text" placeholder='输入查询半径' class="form-control" value="" aria-describedby="basic-addon1" style="width: 150px;" onkeypress="return event.keyCode>=48&&event.keyCode<=57" ng-pattern="/[^a-zA-Z]/" onkeyup="value=value.replace(/[^\d]/g,'') " ng-pattern="/[^a-zA-Z]/">
+								<select id="queryByCirclelayerSelect" class="selectpicker" title="请选择查询图层">
+
+									<!--"<option>" + b[i] + "</option>"-->
+								</select>
+								<span class="input-group-btn">
+        							<button class="btn btn-default" id="drawCenterPoint" type="button">确认</button>
+        							<button class="btn btn-default" type="button" onclick="closePanel('#queryByCircle')">取消</button>
+      							</span>
+
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+			</div>
+
+			<div class='btn-group' id="queryByPolygon">
+				<a data-toggle='dropdown' id='queryByPolygonBtn' title='空间查询' class='btn btn-inverse'>
+					<span style='font-size : 24px;' class='queryPolygon'></span></a>
+				<div class="dropdown-menu" style="position:fixed;top:150px; right: 0; left: auto;height: auto; width:300px;background-color: rgba(0,0,0,0);border: hidden;padding: 0 0;">
+					<div class="panel panel-default" style="margin-bottom: 0">
+						<!-- Default panel contents -->
+						<div class="panel-heading">空间查询
+							<button type="button" class="close" aria-label="Close" onclick="closePanel('#queryByPolygon')"><span aria-hidden="true">&times;</span></button>
+						</div>
+						<div class="panel-body">
+							<div class="input-group">
+								<select id="queryByPolygonlayerSelect" class="selectpicker" title="请选择查询图层">
+									<!--"<option>" + b[i] + "</option>"-->
+								</select>
+								<span class="input-group-btn">
+        							<button class="btn btn-default" id="drawPolygon" type="button">确认</button>
+        							<button class="btn btn-default" type="button" onclick="closePanel('#queryByPolygon')">取消</button>
+      							</span>
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+			</div>
+
+			<div class='btn-group' id="photosphere">
+				<a id='photosphereBtn' title='街景' class='btn btn-inverse' onclick="photoSphereBtn_Click()">
+					<span style='font-size : 24px;' class='photosphere'></span>
+				</a>
+			</div>
+
+			<div class='btn-group' id="addMaker">
+				<a id='addMakerBtn' title='添加标注' class='btn btn-inverse' onclick="addMaker(true)">
+					<span style='font-size : 24px;' class='addmaker'></span>
+				</a>
+			</div>
+
+			<div class='btn-group' id="queryattributesbtn">
+				<a id='queryattributes' title='属性查询' class='btn btn-inverse' onclick="queryattributesClick(true)">
+					<span style='font-size : 24px;' class='queryattributes'></span>
+				</a>
+			</div>
+			<div class='btn-group' id="MeasureDisbtn">
+				<a id='MeasureDis' title='空间距离量算' class='btn btn-inverse'>
+					<span style='font-size : 24px;' class='MeasureDis'></span>
+				</a>
+			</div>
+			<div class='btn-group' id="MeasureAreabtn">
+				<a id='MeasureArea' title='空间面积量算' class='btn btn-inverse'>
+					<span style='font-size : 24px;' class='MeasureArea'></span>
+				</a>
+			</div>
+			<div class='btn-group' id="MeasureHeighbtn">
+				<a id='MeasureHeigh' title='空间高程量算' class='btn btn-inverse'>
+					<span style='font-size : 24px;' class='MeasureHeigh'></span>
+				</a>
+			</div>
+			<div class='btn-group' id="Clear">
+				<a id='addMakerBtn' title='清除' class='btn btn-inverse'>
+					<span style='font-size : 24px;' class='Clear'></span>
+				</a>
+			</div>
+
+		</div>
+
+		<div class="modal fade" id="MakerInfo" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4 class="modal-title" id="exampleModalLabel">添加标注</h4>
+					</div>
+					<div class="modal-body">
+						<div>
+							<label class="control-label">标注名称</label>
+							<input type="text" class="form-control" id="MakerName" value="">
+						</div>
+						<div>
+							<label class="control-label">标注描述</label>
+							<textarea class="form-control" id="MakerInfo" value=""></textarea>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" id="SureaddMaker">添加</button>
+						<button type="button" class="btn btn-default" data-dismiss="modal" id="CanceladdMaker">关闭</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="queryResults" class="panel panel-default">
+			<!-- Default panel contents -->
+			<div class="panel-heading" style="text-align: center;">
+				<h6>查询结果列表</h6>
+				<button type="button" class="close" aria-label="Close" style="position: absolute;top: 2px;right: 2px;" onclick="closeResultPanel('#queryResults')"><span aria-hidden="true">&times;</span></button>
+			</div>
+			<div id="queryResultslist" class="list-group active" style="font-size: 16px;">
+				<!--<a href="#" class="list-group-item"><span class="glyphicon glyphicon-map-marker" aria-hidden="true"></span> Cras justo odio</a>
+				<a href="#" class="list-group-item"><span class="glyphicon glyphicon-map-marker" aria-hidden="true"></span>Dapibus ac facilisis in</a>
+				<a href="#" class="list-group-item"><span class="glyphicon glyphicon-map-marker" aria-hidden="true"></span>Morbi leo risus</a>
+				<a href="#" class="list-group-item"><span class="glyphicon glyphicon-map-marker" aria-hidden="true"></span>Porta ac consectetur ac</a>
+				<a href="#" class="list-group-item"><span class="glyphicon glyphicon-map-marker" aria-hidden="true"></span>Vestibulum at eros</a>-->
+			</div>
+
+		</div>
+		<div id="bubble">
+
+		</div>
+
+		<div class="panel panel-default" id="photospherePanel">
+			<div class="panel-heading">
+				<h3 class="panel-title">街景</h3>
+				<button type="button" class="close" aria-label="Close" style="position: absolute;top: 2px;right: 2px;" onclick="closeResultPanel('#photospherePanel')"><span aria-hidden="true">&times;</span></button>
+			</div>
+			<div class="panel-body">
+
+				<div id="photosphereContainer">
+				</div>
+				<!--<div class="input-group" id="photosphereContainer">
+
+				</div>-->
+
+			</div>
+		</div>
+
+		<script src="js/bootstrap-3.3.7-dist/js/jquery.min.3.2.1.js"></script>
+		<script type="text/javascript" src="js/bootstrap-3.3.7-dist/js/bootstrap.js"></script>
+		<script type="text/javascript" src="js/bootstrap-3.3.7-dist/js/bootstrap-select.min.js"></script>
+		<script type="text/javascript" src="js/bootstrap-3.3.7-dist/js/bootstrap-treeview.js"></script>
+
+		<script type="text/javascript" src="js/tooltip.js"></script>
+		<script type="text/javascript" src="js/mapresource/libs/SuperMap.Include.js"></script>
+		<script type="text/javascript" src="./js/require.min.js" data-main="js/main"></script>
+		<script type="text/javascript" src="js/Convert.js"></script>
+		<script type="text/javascript" src="js/map3D.js"></script>
+		<!--<script type="text/javascript" src="js/bubble.js" ></script>-->
+		<script type="text/javascript" src="js/index.js"></script>
+		<script src="layui_login/loginConfig.js" type="text/javascript" charset="utf-8"></script>
+		<script src="./js/CryptoJS v3.1.2/components/core-min.js"></script>
+		<script src="./js/CryptoJS v3.1.2/rollups/aes.js"></script>
+		<script src="photoSphere/js/photo-sphere-viewer.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="photoSphere/js/three.min.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript" src="js/loadmain.js"></script>
+		<script src="js/dataConfig.js" type="text/javascript" charset="utf-8"></script>
+		<script src="data/photoSphere/photoSpherePoint.js" type="text/javascript" charset="utf-8"></script>
+
+	</body>
+
+</html>
