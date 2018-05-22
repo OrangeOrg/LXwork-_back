@@ -13,6 +13,7 @@ var handlerHeight;
 var leftClick_handler;
 var photoSphereMakerCollection = [];
 var sceneBubble;
+var isaddFlattenRegions = false;
 //页面加载入口
 function onload() {
 
@@ -30,7 +31,6 @@ function onload() {
 		WGmap3D.scene.flytoCameraObj(dataConfig.cameraobj)
 		WGmap3D.scene.layer3Ds.buildLayersTree("treeContiner", WGmap3D);
 
-		
 		var layersTreeData = WGmap3D.scene.layer3Ds.getLayersTreeData();
 		var s3mlayersName = [];
 		layersTreeData[0].nodes.forEach(function(node) {
@@ -41,8 +41,9 @@ function onload() {
 
 		//添加街景maker
 		addphotoSphereMaker();
-		
-		matchlayerTreeSet("BIM",false);
+
+		matchlayerTreeSet("BIM", false);
+		matchlayerTreeSet("点云", false);
 	})
 	//初始化气泡
 	sceneBubble = new Bubble(WGmap3D.scene);
@@ -638,6 +639,41 @@ function getFeatureBysql(selection, position) {
 
 		var dataUrl = dataConfig.dataServers.baseMOdeldataServer.url;
 
+		var queryObj = {
+			"getFeatureMode": "ID",
+			"datasetNames": [dataSourceName + ":" + dataSetName],
+			"ids": [selection.ID]
+		};
+
+		var queryObjJson = JSON.stringify(queryObj);
+
+		$.ajax({
+			type: "post",
+			url: dataUrl,
+			data: queryObjJson,
+			success: function(result) {
+				var resultobj = JSON.parse(result);
+
+				var backfeature = resultobj.features[0];
+
+				sceneBubble.showAt(position);
+				sceneBubble.container.change({
+					contentTable: {
+						name: backfeature.fieldNames,
+						value: backfeature.fieldValues,
+						width: 350,
+						height: 280
+					}
+				})
+				sceneBubble.selection3D = selection;
+
+			},
+			error: function(msg) {
+				console.log(msg);
+				sceneBubble.containe.hide();
+			}
+		})
+
 	} else {
 		var dataInfo = dataConfig.dataServers.TiltmodeldataServer[layerName];
 		if(dataInfo !== undefined) {
@@ -646,40 +682,56 @@ function getFeatureBysql(selection, position) {
 			var dataUrl = dataInfo.url;
 		}
 
-	}
+		var queryObj = {
+			"getFeatureMode": "ID",
+			"datasetNames": [dataSourceName + ":" + dataSetName],
+			"ids": [selection.ID]
+		};
 
-	var queryObj = {
-		"getFeatureMode": "ID",
-		"datasetNames": [dataSourceName + ":" + dataSetName],
-		"ids": [selection.ID]
-	};
+		var queryObjJson = JSON.stringify(queryObj);
 
-	var queryObjJson = JSON.stringify(queryObj);
+		$.ajax({
+			type: "post",
+			url: dataUrl,
+			data: queryObjJson,
+			success: function(result) {
+				var resultobj = JSON.parse(result);
 
-	$.ajax({
-		type: "post",
-		url: dataUrl,
-		data: queryObjJson,
-		success: function(result) {
-			var resultobj = JSON.parse(result);
+				var backfeature = resultobj.features[0];
 
-			var backfeature = resultobj.features[0];
+				var projectId = backfeature.fieldValues[backfeature.fieldNames.indexOf('PROJECTID')];
+				//var projectId = '64a5dab0-ffec-45fb-a047-ab2ae801046d';
+				if(projectId !== undefined && projectId.length > 0) {
+					var innerhtmStr = '<iframe src=' + dataConfig.BIMinfourl + projectId + ' width="320px" height="380px"  marginwidth="0" marginheight="0" frameborder="0" allowtransparency="false"></iframe>';
 
-			sceneBubble.showAt(position);
-			sceneBubble.container.change({
-				contentTable: {
-					name: backfeature.fieldNames,
-					value: backfeature.fieldValues
+					sceneBubble.container.change({
+						width: 350,
+						height: 400
+					});
+					sceneBubble.container.changeContenthtml(innerhtmStr);
+				} else {
+					sceneBubble.container.change({
+						contentTable: {
+							name: backfeature.fieldNames,
+							value: backfeature.fieldValues,
+							width: 350,
+							height: 280
+						}
+					})
+
 				}
-			})
-			sceneBubble.selection3D = selection;
 
-		},
-		error: function(msg) {
-			console.log(msg);
-			sceneBubble.containe.hide();
-		}
-	})
+				sceneBubble.showAt(position);
+				sceneBubble.selection3D = selection;
+
+			},
+			error: function(msg) {
+				console.log(msg);
+				sceneBubble.containe.hide();
+			}
+		})
+
+	}
 
 }
 
@@ -807,14 +859,51 @@ var matchlayerTreeSet = function(value, type) {
 				silent: false
 			}])) : false
 		})
-	}
-	else if(type===true)
-	{
+	} else if(type === true) {
 		allnode.forEach(function(node) {
 			node.text.indexOf(value) > -1 ? ($('#layerTree').treeview('checkNode', [node, {
 				silent: false
 			}])) : false
 		})
+	}
+
+}
+var BIMBtn_Click = function() {
+	if(isaddFlattenRegions === false) {
+		QXFlattenRegions(true);
+		isaddFlattenRegions = true;
+
+	} else {
+		QXFlattenRegions(false);
+		isaddFlattenRegions = false;
+	}
+}
+
+var PointCloudBtn_Click = function() {
+
+	var layer = WGmap3D.scene.layers.find('龙兴智慧园区点云');
+	if(layer.visible === true) {
+		matchlayerTreeSet("点云", false);
+	} else {
+		matchlayerTreeSet("点云", true);
+	}
+}
+var QXFlattenRegions = function(value) {
+	var layer = WGmap3D.scene.layers.find('龙兴智慧园区倾斜摄影');
+	if(value === true) {
+		FlattenRegiondata.forEach(function(feature) {
+			var points = feature.geometry.coordinates;
+			var name = feature.properties.NAME;
+			layer.addFlattenRegion({
+				position: points,
+				name: name
+			})
+		})
+		matchlayerTreeSet("BIM", true);
+
+	} else if(value === false) {
+		layer.removeAllFlattenRegion();
+		matchlayerTreeSet("BIM", false);
 	}
 
 }

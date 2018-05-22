@@ -415,3 +415,11 @@ a.list-group-item:focus {
 	font-family: FontAwesome;
 	content: "\f1aa";
 }
+.BIM:before{
+	font-family: FontAwesome;
+	content: "\f1ad";
+}
+.PointCloud:before{
+	font-family: FontAwesome;
+	content: "\f0c2";
+}

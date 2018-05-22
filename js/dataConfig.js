@@ -14,11 +14,12 @@ var dataConfig = {
 			url: 'http://localhost:8090/iserver/services/data-lx/rest/data/featureResults.rjson?returnContent=true',
 		},		
 		TiltmodeldataServer:{//倾斜单体化图层参数配置，图层名唯一
-			'dtm':{
-				dataSourceName:'DTM',
-				dataSetName:'dtm',
-				url:'http://localhost:8090/iserver/services/data-dataCD/rest/data/featureResults.rjson?returnContent=true'
+			'龙兴智慧园区倾斜摄影':{
+				dataSourceName:'dth',
+				dataSetName:'LXqxdth',
+				url: 'http://localhost:8090/iserver/services/data-lx/rest/data/featureResults.rjson?returnContent=true',
 			}
 		}
-	}
+	},
+	BIMinfourl:'http://114.115.164.244:8090/#/dore?projectId='
 }

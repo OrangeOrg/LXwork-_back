@@ -40,6 +40,10 @@
 			.photosphereCur {
 				cursor: url(./images/cur/aero_link.cur), auto;
 			}
+			.dore-box::-webkit-scrollbar
+			{
+				width: 0px;
+			}
 		</style>
 	</head>
 
@@ -135,6 +139,16 @@
 
 				</div>
 			</div>
+			<div class='btn-group' id="BIM">
+				<a id='photosphereBtn' title='BIM' class='btn btn-inverse' onclick="BIMBtn_Click()">
+					<span style='font-size : 24px;' class='BIM'></span>
+				</a>
+			</div>
+			<div class='btn-group' id="PointCloud">
+				<a id='photosphereBtn' title='点云' class='btn btn-inverse' onclick="PointCloudBtn_Click()">
+					<span style='font-size : 24px;' class='PointCloud'></span>
+				</a>
+			</div>
 
 			<div class='btn-group' id="photosphere">
 				<a id='photosphereBtn' title='街景' class='btn btn-inverse' onclick="photoSphereBtn_Click()">
@@ -227,9 +241,6 @@
 
 				<div id="photosphereContainer">
 				</div>
-				<!--<div class="input-group" id="photosphereContainer">
-
-				</div>-->
 
 			</div>
 		</div>
@@ -246,14 +257,12 @@
 		<script type="text/javascript" src="js/map3D.js"></script>
 		<!--<script type="text/javascript" src="js/bubble.js" ></script>-->
 		<script type="text/javascript" src="js/index.js"></script>
-		<script src="layui_login/loginConfig.js" type="text/javascript" charset="utf-8"></script>
-		<script src="./js/CryptoJS v3.1.2/components/core-min.js"></script>
-		<script src="./js/CryptoJS v3.1.2/rollups/aes.js"></script>
 		<script src="photoSphere/js/photo-sphere-viewer.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="photoSphere/js/three.min.js" type="text/javascript" charset="utf-8"></script>
 		<script type="text/javascript" src="js/loadmain.js"></script>
 		<script src="js/dataConfig.js" type="text/javascript" charset="utf-8"></script>
 		<script src="data/photoSphere/photoSpherePoint.js" type="text/javascript" charset="utf-8"></script>
+		<script src="data/FlattenRegiondata.js" type="text/javascript" charset="utf-8"></script>
 
 	</body>
 
