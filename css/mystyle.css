@@ -23,6 +23,8 @@ body,
 	left: 2px;
 	height: auto;
 	width: auto;
+	max-height: 780px;
+	overflow: auto;
 	background-color: rgba(0, 0, 255, 0);
 }
 

@@ -458,6 +458,246 @@ Orange.WGmap3D = function(ContainerID, parameter) {
 					}
 
 				},
+				buildCustomLayersTree: function(a, b, c) { //a传入containerDOMID，基于bootstrap创建,b为实例化的WGmap3D对象，c为treedata
+					var that = this;
+					var nameStr = "#" + a;
+					$(nameStr).empty();
+					var layetreediv = $('<div></div>'); //创建一个子div
+					layetreediv.attr('id', 'layerTree'); //给子div设置id
+					layetreediv.addClass('treeview'); //添加css样式
+
+					$(nameStr).append(layetreediv);
+					//var layerTreeData = this.getLayersTreeData();
+					if(c) {
+						$('#layerTree').treeview({
+							data: c,
+							checkedIcon: "glyphicon glyphicon-check",
+							backColor: "#071D32",
+							color: "#fff",
+							selectedColor: "#21F2F3",
+
+							onhoverColor: "#07A3EE",
+							//showBorder:false,
+							multiSelect: false,
+							showCheckbox: true,
+							onNodeChecked: function(event, node) { //选中节点
+								setCheckChildNodes(node);
+								var layerType = node.text.split('@')[1];
+								if(layerType === "BIM") {
+									var layer = that.getLayer(node.text);
+									var flattenFeature = findDatabyName(node.text);
+									if(flattenFeature !== undefined) {
+										var position = Conver2DPointsTo3DByheight(flattenFeature.geometry.coordinates,flattenFeature.properties.BottomAttitude)
+										var name = node.text + randomString(5);
+										if(layer.FlattenRegionName === undefined) {
+											layer['FlattenRegionName'] = name
+										}
+										else
+										{
+											layer.FlattenRegionName = name
+										}
+										var QXModellayer = that.getLayer('龙兴智慧园区倾斜摄影');
+										QXModellayer.addFlattenRegion({
+											position: position,
+											name: name
+										})
+									}
+
+								}
+
+							},
+							onNodeUnchecked: function(event, node) {
+								//判断取消选中节点
+								setUnCheckChildNodes(node);
+								var layer=that.getLayer(node.text)
+								if(layer.FlattenRegionName!==undefined)
+								{
+									var QXModellayer = that.getLayer('龙兴智慧园区倾斜摄影');
+									QXModellayer.removeFlattenRegion(layer.FlattenRegionName)
+								}
+
+							},
+							onNodeSelected: function(event, node) //节点选中事件
+							{
+
+								if(node.nodes == undefined) {
+									var parentNode = $("#layerTree").treeview("getNode", node.parentId);
+									var layername = node.text
+
+									var layer = that.getLayer(layername);
+									if(typeof b === 'object') {
+										b.viewer.flyTo(layer, {
+											duration: 2
+										});
+									}
+
+								}
+
+							}
+
+						});
+
+					}
+					var setCheckChildNodes = function(currentnode) {
+						if(currentnode.nodes === undefined) {
+							var parentNode = $("#layerTree").treeview("getNode", currentnode.parentId);
+							var layername = currentnode.text;
+
+							var layer = that.getLayer(layername);
+							if(layer) {
+								var layerType = layer.layer3DType;
+								switch(layerType) {
+									case 0:
+										layer.show = true;
+										break;
+									case 1:
+										break;
+									case 2:
+										layer.visible = true;
+
+										break;
+								}
+							}
+						} else {
+							var uncheckedChildNodes = getChildNodeUncheck(currentnode)
+
+							$('#layerTree').treeview('checkNode', [uncheckedChildNodes.nodesID, {
+								silent: true
+							}]);
+							currentnode.nodes.forEach(function(childnode) {
+								setCheckChildNodes(childnode);
+							})
+						}
+					}
+					var setUnCheckChildNodes = function(currentnode) {
+						if(currentnode.nodes === undefined) {
+							var parentNode = $("#layerTree").treeview("getNode", currentnode.parentId);
+							var layername = currentnode.text;
+
+							var layer = that.getLayer(layername);
+							if(layer) {
+								var layerType = layer.layer3DType;
+								switch(layerType) {
+									case 0:
+										layer.show = false;
+										break;
+									case 1:
+										break;
+									case 2:
+										layer.visible = false;
+										break;
+								}
+							}
+						} else {
+							var checkedChildNodes = getChildNodechecked(currentnode)
+
+							$('#layerTree').treeview('uncheckNode', [checkedChildNodes.nodesID, {
+								silent: true
+							}]);
+							currentnode.nodes.forEach(function(childnode) {
+								setUnCheckChildNodes(childnode);
+							})
+						}
+					}
+					// 选中父节点时，选中所有子节点
+					function getChildNodeIdArr(node) {
+						var ts = [];
+						if(node.nodes) {
+							for(x in node.nodes) {
+								ts.push(node.nodes[x].nodeId);
+								if(node.nodes[x].nodes) {
+									var getNodeDieDai = getChildNodeIdArr(node.nodes[x]);
+									for(j in getNodeDieDai) {
+										ts.push(getNodeDieDai[j]);
+									}
+								}
+							}
+						} else {
+							ts.push(node.nodeId);
+						}
+						return ts;
+					}
+
+					// 获取子节点中选中的节点
+					function getChildNodechecked(node) {
+						if(node.nodes) {
+							var ts = {
+								nodesID: [],
+								nodes: []
+							}; //当前节点子集中未被选中的集合
+							for(x in node.nodes) {
+								if(node.nodes[x].state.checked) {
+									ts.nodesID.push(node.nodes[x].nodeId);
+									ts.nodes.push(node.nodes[x]);
+								}
+								if(node.nodes[x].nodes) {
+									var getNodeDieDai = node.nodes[x];
+									//console.log(getNodeDieDai);
+									for(j in getNodeDieDai.nodes) {
+										if(getNodeDieDai.nodes[j].state.checked) {
+											ts.nodesID.push(getNodeDieDai.nodes[j].nodeId);
+											ts.nodes.push(getNodeDieDai.nodes[j]);
+										}
+									}
+								}
+							}
+						}
+						return ts;
+					}
+					// 获取子节点中未选中的节点
+					function getChildNodeUncheck(node) {
+						if(node.nodes) {
+							var ts = {
+								nodesID: [],
+								nodes: []
+							}; //当前节点子集中未被选中的集合
+							for(x in node.nodes) {
+								if(!node.nodes[x].state.checked) {
+									ts.nodesID.push(node.nodes[x].nodeId);
+									ts.nodes.push(node.nodes[x]);
+								}
+								if(node.nodes[x].nodes) {
+									var getNodeDieDai = node.nodes[x];
+									//console.log(getNodeDieDai);
+									for(j in getNodeDieDai.nodes) {
+										if(!getNodeDieDai.nodes[j].state.checked) {
+											ts.nodesID.push(getNodeDieDai.nodes[j].nodeId);
+											ts.nodes.push(getNodeDieDai.nodes[j]);
+										}
+									}
+								}
+							}
+						}
+						return ts;
+					}
+
+					// 选中所有子节点时，选中父节点 取消子节点时取消父节点
+					function setParentNodeCheck(node) {
+						var parentNode = $("#layerTree").treeview("getNode", node.parentId);
+						if(parentNode.nodes) {
+							var checkedCount = 0;
+							for(x in parentNode.nodes) {
+								if(parentNode.nodes[x].state.checked) {
+									checkedCount++;
+								}
+							}
+							if(checkedCount == parentNode.nodes.length) { //如果子节点全部被选 父全选
+								//$("#tree").treeview("checkNode", parentNode.nodeId);
+								//setParentNodeCheck(parentNode);
+							} else if(checkedCount > 0 && checkedCount !== parentNode.nodes.length) { //如果子节点未全部被选 父未全选
+								//$('#tree').treeview('checkNode', parentNode.nodeId);
+								//setParentNodeCheck(parentNode);
+							} else if(checkedCount === 0) //子节点全部取消，父节点也取消选中
+							{
+								$('#layerTree').treeview('uncheckNode', [parentNode.nodeId, {
+									silent: true
+								}]);
+							}
+
+						}
+					}
+
+				},
 				getLayerType: function(layer) {
 					if(typeof layer === 'object') {
 						if(layer["hasLight"] !== undefined) {

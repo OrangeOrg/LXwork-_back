@@ -29,7 +29,8 @@ function onload() {
 	promise.then(function(layers) {
 
 		WGmap3D.scene.flytoCameraObj(dataConfig.cameraobj)
-		WGmap3D.scene.layer3Ds.buildLayersTree("treeContiner", WGmap3D);
+		//WGmap3D.scene.layer3Ds.buildLayersTree("treeContiner", WGmap3D);
+		WGmap3D.scene.layer3Ds.buildCustomLayersTree("treeContiner",WGmap3D,CustomTreedata)
 
 		var layersTreeData = WGmap3D.scene.layer3Ds.getLayersTreeData();
 		var s3mlayersName = [];
@@ -41,9 +42,10 @@ function onload() {
 
 		//添加街景maker
 		addphotoSphereMaker();
-
-		matchlayerTreeSet("BIM", false);
+		
 		matchlayerTreeSet("点云", false);
+		matchlayerTreeSet("BIM", false);
+		
 	})
 	//初始化气泡
 	sceneBubble = new Bubble(WGmap3D.scene);
@@ -91,7 +93,7 @@ function onload() {
 		if(fieldName !== '') {
 			var querylayer = WGmap3D.scene.layers.find(fieldName);
 			if(querylayer !== undefined) {
-				queryByPolygon(point2Ds, querylayer);
+				queryByPolygon(backPoint.point2Ds, querylayer);
 			}
 
 		}
@@ -252,6 +254,7 @@ function clearAll() {
 		WGmap3D.viewer.entities.remove(window.networkResultLine);
 		window.networkResultLine = '';
 	}
+	deactiveAll() ;
 
 }
 
@@ -531,6 +534,7 @@ var addPolygon = function(point3Ds) {
 		polygon: {
 			hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(point3Ds),
 			extrudedHeight: point3Ds[2] + 20,
+			height:point3Ds[2],
 			outline: true,
 			outlineColor: Cesium.Color.WHITE,
 			material: Cesium.Color.WHITE.withAlpha(0.5)
@@ -906,4 +910,38 @@ var QXFlattenRegions = function(value) {
 		matchlayerTreeSet("BIM", false);
 	}
 
+}
+
+var findDatabyName=function(name)
+{
+	var features=FlattenRegiondata.features
+	for(var i=0,len=features.length;i<len;i++)
+	{
+		if(features[i].properties.bimname===name)
+		{
+			return features[i]
+		}
+	}
+	return undefined
+}
+
+var Conver2DPointsTo3DByheight=function(point2Ds,height)
+{
+	var point3Ds=[];
+	point2Ds.forEach(function(point){
+		point3Ds.push(point[0]);
+		point3Ds.push(point[1]);
+		point3Ds.push(height);
+	})
+	return point3Ds
+}
+function randomString(len) {
+　　len = len || 32;
+　　var $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';    /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/
+　　var maxPos = $chars.length;
+　　var pwd = '';
+　　for (i = 0; i < len; i++) {
+　　　　pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
+　　}
+　　return pwd;
 }
