@@ -482,39 +482,10 @@ Orange.WGmap3D = function(ContainerID, parameter) {
 							showCheckbox: true,
 							onNodeChecked: function(event, node) { //选中节点
 								setCheckChildNodes(node);
-								var layerType = node.text.split('@')[1];
-								if(layerType === "BIM") {
-									var layer = that.getLayer(node.text);
-									var flattenFeature = findDatabyName(node.text);
-									if(flattenFeature !== undefined) {
-										var position = Conver2DPointsTo3DByheight(flattenFeature.geometry.coordinates,flattenFeature.properties.BottomAttitude)
-										var name = node.text + randomString(5);
-										if(layer.FlattenRegionName === undefined) {
-											layer['FlattenRegionName'] = name
-										}
-										else
-										{
-											layer.FlattenRegionName = name
-										}
-										var QXModellayer = that.getLayer('龙兴智慧园区倾斜摄影');
-										QXModellayer.addFlattenRegion({
-											position: position,
-											name: name
-										})
-									}
-
-								}
-
 							},
 							onNodeUnchecked: function(event, node) {
 								//判断取消选中节点
 								setUnCheckChildNodes(node);
-								var layer=that.getLayer(node.text)
-								if(layer.FlattenRegionName!==undefined)
-								{
-									var QXModellayer = that.getLayer('龙兴智慧园区倾斜摄影');
-									QXModellayer.removeFlattenRegion(layer.FlattenRegionName)
-								}
 
 							},
 							onNodeSelected: function(event, node) //节点选中事件
@@ -546,6 +517,25 @@ Orange.WGmap3D = function(ContainerID, parameter) {
 							var layer = that.getLayer(layername);
 							if(layer) {
 								var layerType = layer.layer3DType;
+								var layerTypeBIM = currentnode.text.split('@')[1];
+								if(layerTypeBIM === "BIM") {
+									var flattenFeature = findDatabyName(currentnode.text);
+									if(flattenFeature !== undefined) {
+										var position = Conver2DPointsTo3DByheight(flattenFeature.geometry.coordinates, flattenFeature.properties.BottomAttitude)
+										var name = currentnode.text + randomString(5);
+										if(layer.FlattenRegionName === undefined) {
+											layer['FlattenRegionName'] = name
+										} else {
+											layer.FlattenRegionName = name
+										}
+										var QXModellayer = that.getLayer('龙兴智慧园区倾斜摄影');
+										QXModellayer.addFlattenRegion({
+											position: position,
+											name: name
+										})
+									}
+
+								}
 								switch(layerType) {
 									case 0:
 										layer.show = true;
@@ -558,6 +548,7 @@ Orange.WGmap3D = function(ContainerID, parameter) {
 										break;
 								}
 							}
+
 						} else {
 							var uncheckedChildNodes = getChildNodeUncheck(currentnode)
 
@@ -576,6 +567,10 @@ Orange.WGmap3D = function(ContainerID, parameter) {
 
 							var layer = that.getLayer(layername);
 							if(layer) {
+								if(layer.FlattenRegionName !== undefined) {
+									var QXModellayer = that.getLayer('龙兴智慧园区倾斜摄影');
+									QXModellayer.removeFlattenRegion(layer.FlattenRegionName)
+								}
 								var layerType = layer.layer3DType;
 								switch(layerType) {
 									case 0:
@@ -588,6 +583,7 @@ Orange.WGmap3D = function(ContainerID, parameter) {
 										break;
 								}
 							}
+
 						} else {
 							var checkedChildNodes = getChildNodechecked(currentnode)
 
@@ -785,16 +781,7 @@ Orange.WGmap3D = function(ContainerID, parameter) {
 
 			}
 		}
-		//this.scene.addObjectSelectedEvent
 	}
-	//	else {
-	//		this.viewer = new Cesium.Viewer(this.ContainerID);
-	//		this.scene = this.viewer.scene;
-	//		if(this.scene.layer3Ds === undefined) {
-	//			this.scene['layer3Ds'] = {}
-	//		}
-	//
-	//	}
 };
 
 //气泡
