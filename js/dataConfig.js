@@ -24,3 +24,20 @@ var dataConfig = {
 	BIMinfourl: 'http://114.115.164.244:8090/#/dore?projectId='
 }
 
+var CheckfieldNames = {
+
+	"SMID": '系统ID',
+	"SMSDRIW": '最西边',
+	"SMSDRIN": '最北边',
+	"SMSDRIE": '最东边',
+	"SMSDRIS": '最南边',
+	"SMUSERID": '系统用户ID',
+	"SMAREA": '几何面积',
+	"SMPERIMETER": '系统几何周长',
+	"SMGEOMETRYSIZE": '系统几何尺寸',
+	"SMGEOPOSITION": '系统几何位置',
+	"USERID": '用户ID',
+	'NAME': '名称',
+	'BOTTOMATTITUDE': '底部高程',
+	'HEIGHT': '建筑高度'
+}

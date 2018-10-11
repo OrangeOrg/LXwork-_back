@@ -130,18 +130,18 @@ Orange.WGmap3D = function(ContainerID, parameter) {
 								//layer.hasLight = false;
 								//layer.lodRangeScale = 0.2;
 								layer["layerName"] = layer._name;
-								layer["Caption"] = layer._name.split('@')[0];
+								//layer["Caption"] = layer._name.split('@')[0];
 								break;
 
 							case 0:
 								layer["layerName"] = layer._imageryProvider._name;
-								layer["Caption"] = layer._name.split('@')[0];
+								//layer["Caption"] = layer._name.split('@')[0];
 								break;
 							case 1:
 								var layerurlsplits = layer._url.split('/');
 								var layerName = layerurlsplits[layerurlsplits.length - 1];
 								layer["layerName"] = layerName;
-								layer["Caption"] = layerName.split('@')[0];
+								//layer["Caption"] = layerName.split('@')[0];
 								break;
 						}
 					})

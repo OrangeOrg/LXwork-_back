@@ -30,7 +30,7 @@ function onload() {
 
 		WGmap3D.scene.flytoCameraObj(dataConfig.cameraobj)
 		//WGmap3D.scene.layer3Ds.buildLayersTree("treeContiner", WGmap3D);
-		WGmap3D.scene.layer3Ds.buildCustomLayersTree("treeContiner",WGmap3D,CustomTreedata)
+		WGmap3D.scene.layer3Ds.buildCustomLayersTree("treeContiner", WGmap3D, CustomTreedata)
 
 		var layersTreeData = WGmap3D.scene.layer3Ds.getLayersTreeData();
 		var s3mlayersName = [];
@@ -42,10 +42,10 @@ function onload() {
 
 		//添加街景maker
 		addphotoSphereMaker();
-		
+
 		matchlayerTreeSet("点云", false);
 		matchlayerTreeSet("BIM", false);
-		
+
 	})
 	//初始化气泡
 	sceneBubble = new Bubble(WGmap3D.scene);
@@ -254,7 +254,7 @@ function clearAll() {
 		WGmap3D.viewer.entities.remove(window.networkResultLine);
 		window.networkResultLine = '';
 	}
-	deactiveAll() ;
+	deactiveAll();
 
 }
 
@@ -534,7 +534,7 @@ var addPolygon = function(point3Ds) {
 		polygon: {
 			hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(point3Ds),
 			extrudedHeight: point3Ds[2] + 20,
-			height:point3Ds[2],
+			height: point3Ds[2],
 			outline: true,
 			outlineColor: Cesium.Color.WHITE,
 			material: Cesium.Color.WHITE.withAlpha(0.5)
@@ -714,10 +714,11 @@ function getFeatureBysql(selection, position) {
 					});
 					sceneBubble.container.changeContenthtml(innerhtmStr);
 				} else {
+					var TableValues= fieldNamePatch(backfeature,CheckfieldNames)
 					sceneBubble.container.change({
 						contentTable: {
-							name: backfeature.fieldNames,
-							value: backfeature.fieldValues,
+							name: TableValues.fieldNames,
+							value: TableValues.fieldValues,
 							width: 350,
 							height: 280
 						}
@@ -737,6 +738,27 @@ function getFeatureBysql(selection, position) {
 
 	}
 
+}
+
+/****属性字段名英文转中文*******/
+
+var fieldNamePatch=function(backfeature,Names){
+	var newbackfeature={
+		fieldNames:[],
+		fieldValues:[]
+	}
+	var fieldNames=backfeature.fieldNames;
+	var fieldValues=backfeature.fieldValues;
+	fieldNames.forEach(function(namekey){
+		if(Names[namekey]!==undefined)
+		{
+			var index=fieldNames.indexOf(namekey);
+			var value=fieldValues[index];
+			newbackfeature.fieldNames.push(Names[namekey])
+			newbackfeature.fieldValues.push(value)
+		}
+	})
+	return newbackfeature
 }
 
 //添加街景Maker
@@ -895,11 +917,16 @@ var PointCloudBtn_Click = function() {
 var QXFlattenRegions = function(value) {
 	var layer = WGmap3D.scene.layers.find('龙兴智慧园区倾斜摄影');
 	if(value === true) {
-		FlattenRegiondata.forEach(function(feature) {
-			var points = feature.geometry.coordinates;
-			var name = feature.properties.NAME;
+		FlattenRegiondata.features.forEach(function(feature) {
+			var position = Conver2DPointsTo3DByheight(feature.geometry.coordinates, feature.properties.BottomAttitude)
+			var name = layer.name + randomString(5);
+			if(layer.FlattenRegionName === undefined) {
+				layer['FlattenRegionName'] = name
+			} else {
+				layer.FlattenRegionName = name
+			}
 			layer.addFlattenRegion({
-				position: points,
+				position: position,
 				name: name
 			})
 		})
@@ -912,36 +939,34 @@ var QXFlattenRegions = function(value) {
 
 }
 
-var findDatabyName=function(name)
-{
-	var features=FlattenRegiondata.features
-	for(var i=0,len=features.length;i<len;i++)
-	{
-		if(features[i].properties.bimname===name)
-		{
+var findDatabyName = function(name) {
+	var features = FlattenRegiondata.features
+	for(var i = 0, len = features.length; i < len; i++) {
+		if(features[i].properties.bimname === name) {
 			return features[i]
 		}
 	}
 	return undefined
 }
 
-var Conver2DPointsTo3DByheight=function(point2Ds,height)
-{
-	var point3Ds=[];
-	point2Ds.forEach(function(point){
+var Conver2DPointsTo3DByheight = function(point2Ds, height) {
+	var point3Ds = [];
+	point2Ds.forEach(function(point) {
 		point3Ds.push(point[0]);
 		point3Ds.push(point[1]);
 		point3Ds.push(height);
 	})
 	return point3Ds
 }
-function randomString(len) {
-　　len = len || 32;
-　　var $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';    /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/
-　　var maxPos = $chars.length;
-　　var pwd = '';
-　　for (i = 0; i < len; i++) {
-　　　　pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
-　　}
-　　return pwd;
+
+function randomString(len) {　　
+	len = len || 32;　　
+	var $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'; /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/ 　　
+	var maxPos = $chars.length;　　
+	var pwd = '';　　
+	for(i = 0; i < len; i++) {　　　　
+		pwd += $chars.charAt(Math.floor(Math.random() * maxPos));　　
+	}　　
+	return pwd;
 }
+
